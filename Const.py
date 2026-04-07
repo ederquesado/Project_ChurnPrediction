@@ -34,3 +34,33 @@ MODEL_COLUMNS = [
 ]
 
 DEFAULT_THRESHOLD = 0.40
+
+# Feature encoding mappings
+BINARY_FEATURES = {
+    'gender': ('gender_Male', 'Male'),
+    'senior_citizen': ('SeniorCitizen_1', 'Yes'),
+    'partner': ('Partner_Yes', 'Yes'),
+    'dependents': ('Dependents_Yes', 'Yes'),
+    'phone_service': ('PhoneService_Yes', 'Yes'),
+    'paperless_billing': ('PaperlessBilling_Yes', 'Yes'),
+}
+
+MULTI_STATE_FEATURES = {
+    'multiple_lines': ('MultipleLines', ['No phone service', 'Yes']),
+    'internet_service': ('InternetService', ['Fiber optic', 'No']),
+    'contract': ('Contract', ['One year', 'Two year']),
+    'payment_method': ('PaymentMethod', ['Credit card (automatic)', 'Electronic check', 'Mailed check']),
+    'online_security': ('OnlineSecurity', ['Yes', 'No internet service']),
+    'online_backup': ('OnlineBackup', ['Yes', 'No internet service']),
+    'device_protection': ('DeviceProtection', ['Yes', 'No internet service']),
+    'tech_support': ('TechSupport', ['Yes', 'No internet service']),
+    'streaming_tv': ('StreamingTV', ['Yes', 'No internet service']),
+    'streaming_movies': ('StreamingMovies', ['Yes', 'No internet service']),
+}
+
+NUMERIC_FEATURES = ['tenure', 'MonthlyCharges', 'TotalCharges']
+NUMERIC_TO_DF_MAPPING = {
+    'tenure': 'tenure',
+    'monthly_charges': 'MonthlyCharges',
+    'total_charges': 'TotalCharges',
+}

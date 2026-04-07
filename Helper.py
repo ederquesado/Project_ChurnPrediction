@@ -8,82 +8,50 @@ def load_model():
 def empty_input_df() -> pd.DataFrame:
     return pd.DataFrame([[0] * len(Const.MODEL_COLUMNS)], columns=Const.MODEL_COLUMNS)
 
-def set_binary(df: pd.DataFrame, column_name: str, condition: bool) -> None:
-    if condition and column_name in df.columns:
-        df.at[0,column_name] =1
+def _set_feature_value(df: pd.DataFrame, column_name: str, value: int) -> None:
+    """Set a feature value in the dataframe if column exists."""
+    if column_name in df.columns:
+        df.at[0, column_name] = value
 
-def apply_three_state_service(
-        df: pd.DataFrame,
-        feature_prefix: str,
-        selected_value: str
-) -> None:
-    no_internet_col = f'{feature_prefix}_No internet service'
-    yes_col = f'{feature_prefix}_yes'
+def _encode_binary_feature(df: pd.DataFrame, feature_name: str, user_value: str) -> None:
+    """Encode a binary feature (e.g., Yes/No)."""
+    column_name, target_value = Const.BINARY_FEATURES[feature_name]
+    _set_feature_value(df, column_name, int(user_value == target_value))
 
-    if selected_value == 'No internet service':
-        if no_internet_col in df.columns:
-            df.at[0, no_internet_col] = 1
-    elif selected_value == 'Yes':
-        if yes_col in df.columns:
-            df.at[0,yes_col] = 1
-
-def build_input_dataframe(
-    tenure: int,
-    monthly_charges: float,
-    total_charges: float,
-    gender: str,
-    senior_citizen: str,
-    partner: str,
-    dependents: str,
-    phone_service: str,
-    multiple_lines: str,
-    internet_service: str,
-    contract: str,
-    paperless_billing: str,
-    payment_method: str,
-    online_security: str,
-    online_backup: str,
-    device_protection: str,
-    tech_support: str,
-    streaming_tv: str,
-    streaming_movies: str,
-
-) -> pd.DataFrame:
-
-    df = empty_input_df()
-
-    df.at[0, "tenure"] = tenure
-    df.at[0, "MonthlyCharges"] = monthly_charges
-    df.at[0, "TotalCharges"] = total_charges
-
-    set_binary(df, "gender_Male", gender == "Male")
-    set_binary(df, "SeniorCitizen_1", senior_citizen == "Yes")
-    set_binary(df, "Partner_Yes", partner == "Yes")
-    set_binary(df, "Dependents_Yes", dependents == "Yes")
-    set_binary(df, "PhoneService_Yes", phone_service == "Yes")
-    set_binary(df, "PaperlessBilling_Yes", paperless_billing == "Yes")
-
-    set_binary(df, "MultipleLines_No phone service", multiple_lines == "No phone service")
-    set_binary(df, "MultipleLines_Yes", multiple_lines == "Yes")
-
-
-    set_binary(df, "InternetService_Fiber optic", internet_service == "Fiber optic")
-    set_binary(df, "InternetService_No", internet_service == "No")
+def _encode_multi_state_feature(df: pd.DataFrame, feature_name: str, user_value: str) -> None:
+    """Encode a multi-state feature (e.g., multiple options with binary encoding)."""
+    feature_prefix, active_values = Const.MULTI_STATE_FEATURES[feature_name]
     
-    set_binary(df, "PaymentMethod_Credit card (automatic)", payment_method == "Credit card (automatic)")
-    set_binary(df, "PaymentMethod_Electronic check", payment_method == "Electronic check")
-    set_binary(df, "PaymentMethod_Mailed check", payment_method == "Mailed check")
+    for active_value in active_values:
+        column_name = f'{feature_prefix}_{active_value}'
+        _set_feature_value(df, column_name, int(user_value == active_value))
 
-    set_binary(df, "Contract_One year", contract == "One year")
-    set_binary(df, "Contract_Two year", contract == "Two year")
-
-    apply_three_state_service(df, "OnlineSecurity", online_security)
-    apply_three_state_service(df, "OnlineBackup", online_backup)
-    apply_three_state_service(df, "DeviceProtection", device_protection)
-    apply_three_state_service(df, "TechSupport", tech_support)
-    apply_three_state_service(df, "StreamingTV", streaming_tv)
-    apply_three_state_service(df, "StreamingMovies", streaming_movies)
-
+def build_input_dataframe(input_data: dict) -> pd.DataFrame:
+    """Build model input dataframe from user input dictionary.
+    
+    Args:
+        input_data: Dictionary with feature names as keys and user-selected values.
+        
+    Returns:
+        DataFrame with properly encoded features for model prediction.
+    """
+    df = empty_input_df()
+    
+    # Set numeric features
+    for input_key, df_column in Const.NUMERIC_TO_DF_MAPPING.items():
+        if input_key in input_data:
+            df.at[0, df_column] = input_data[input_key]
+    
+    # Encode binary features
+    for feature_name in Const.BINARY_FEATURES.keys():
+        if feature_name in input_data:
+            _encode_binary_feature(df, feature_name, input_data[feature_name])
+    
+    # Encode multi-state features
+    for feature_name in Const.MULTI_STATE_FEATURES.keys():
+        if feature_name in input_data:
+            _encode_multi_state_feature(df, feature_name, input_data[feature_name])
+    
     return df
 
 def recommend_action(probability: float) -> str:

@@ -1,0 +1,13 @@
+{
+  "provider": "ollama",
+  "baseUrl": "http://localhost:11434/v1",
+  "model": "llama3.1:8b",
+  "env": {
+    "CLAUDE_CODE_USE_OPENAI": "1"
+  },
+  "defaults": {
+    "goal": "coding",
+    "temperature": 0.2,
+    "maxTokens": 4096
+  }
+}
